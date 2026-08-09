@@ -1,0 +1,13 @@
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.bak
+vendor/
+node_modules/
+.idea/
+.vscode/
+standalone/config/config.php
+standalone/storage/setup.lock
+standalone/storage/cache/*.json
+standalone/storage/rate-limits/*.json

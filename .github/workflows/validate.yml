@@ -1,0 +1,25 @@
+name: Validate
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.0'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: PHP syntax
+        run: find . -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: JavaScript syntax
+        run: |
+          node --check assets/rbsr-public.js
+          node --check standalone/assets/widget.js
+          node --check standalone/assets/setup-preview.js
+          node --check standalone/embed.js
