@@ -2,7 +2,7 @@
 /**
  * Plugin Name: RadioBOSS Song Ratings
  * Description: Adds listener song ratings, a neutral demo player, and a WordPress ratings dashboard for one or more radio stations.
- * Version: 1.0.1
+ * Version: 1.1.1
  * Requires at least: 6.0
  * Requires PHP: 8.0
  * Author: Radio Music Tools Community
@@ -15,7 +15,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('RBSR_VERSION', '1.0.1');
+define('RBSR_VERSION', '1.1.1');
 define('RBSR_FILE', __FILE__);
 define('RBSR_DIR', plugin_dir_path(__FILE__));
 define('RBSR_URL', plugin_dir_url(__FILE__));
