@@ -52,7 +52,14 @@ final class RBSR_REST
             return new WP_Error('rbsr_missing_track', __('Artist and title are required.', 'radioboss-song-ratings'), ['status' => 400]);
         }
 
+        $canonical = RBSR_Core::catalog_track($stationSlug, $artist, $title);
+        if (is_wp_error($canonical)) {
+            return $canonical;
+        }
+        $artist = $canonical['artist'];
+        $title = $canonical['title'];
         $songKey = RBSR_Core::song_key($stationSlug, $artist, $title);
+
         return rest_ensure_response([
             'station' => $stationSlug,
             'songKey' => $songKey,
@@ -97,6 +104,12 @@ final class RBSR_REST
         }
         set_transient($addressRateKey, $addressAttempts + 1, MINUTE_IN_SECONDS);
 
+        $canonical = RBSR_Core::catalog_track($station, $artist, $title);
+        if (is_wp_error($canonical)) {
+            return $canonical;
+        }
+        $artist = $canonical['artist'];
+        $title = $canonical['title'];
         $songKey = RBSR_Core::song_key($station, $artist, $title);
         $visitorHash = hash_hmac('sha256', $visitor, wp_salt('auth'));
         $now = current_time('mysql', true);
@@ -171,6 +184,13 @@ final class RBSR_REST
         if ($artist === '' || $title === '') {
             return new WP_Error('rbsr_track_unavailable', __('The metadata source did not provide both artist and title.', 'radioboss-song-ratings'), ['status' => 502]);
         }
+
+        $canonical = RBSR_Core::catalog_track($stationSlug, $artist, $title);
+        if (is_wp_error($canonical)) {
+            return $canonical;
+        }
+        $artist = $canonical['artist'];
+        $title = $canonical['title'];
         $songKey = RBSR_Core::song_key($stationSlug, $artist, $title);
 
         $stream = $station['stream'];
