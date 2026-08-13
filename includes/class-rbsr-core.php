@@ -80,6 +80,7 @@ final class RBSR_Core
             $defaults["station_{$index}_slug"] = $index === 1 ? 'example-radio' : '';
             $defaults["station_{$index}_api"] = '';
             $defaults["station_{$index}_stream"] = '';
+            $defaults["station_{$index}_catalog"] = '';
             $defaults["station_{$index}_color"] = $index === 1 ? '#2563eb' : '#7c3aed';
         }
         return $defaults;
@@ -110,6 +111,7 @@ final class RBSR_Core
                 'slug' => $slug,
                 'api' => esc_url_raw((string) ($settings["station_{$index}_api"] ?? '')),
                 'stream' => esc_url_raw((string) ($settings["station_{$index}_stream"] ?? '')),
+                'catalog' => esc_url_raw((string) ($settings["station_{$index}_catalog"] ?? '')),
                 'color' => sanitize_hex_color((string) ($settings["station_{$index}_color"] ?? '')) ?: '#2563eb',
             ];
         }
@@ -126,6 +128,52 @@ final class RBSR_Core
     public static function song_key(string $station, string $artist, string $title): string
     {
         return hash('sha256', strtolower(trim($station . '|' . $artist . '|' . $title)));
+    }
+
+    public static function normalize_track_text(string $value): string
+    {
+        $value = html_entity_decode(wp_strip_all_tags($value), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $value = str_replace(["’", "‘", "`", "´"], "'", $value);
+        $value = str_replace(["–", "—", "−"], '-', $value);
+        $value = preg_replace('/\s+/u', ' ', trim($value)) ?? trim($value);
+        return strtolower($value);
+    }
+
+    public static function catalog_track(string $stationSlug, string $artist, string $title)
+    {
+        $station = self::station($stationSlug);
+        if ($station === null || empty($station['catalog'])) {
+            return new WP_Error('rbsr_catalog_not_configured', __('The SongSync songs.json URL is not configured for this station.', 'radioboss-song-ratings'), ['status' => 503]);
+        }
+
+        $cacheKey = 'rbsr_catalog_' . md5($stationSlug . '|' . $station['catalog']);
+        $catalog = get_transient($cacheKey);
+        if (!is_array($catalog)) {
+            $response = wp_safe_remote_get($station['catalog'], ['timeout' => 10, 'redirection' => 3, 'headers' => ['Accept' => 'application/json']]);
+            if (is_wp_error($response) || wp_remote_retrieve_response_code($response) !== 200) {
+                return new WP_Error('rbsr_catalog_unavailable', __('The SongSync songs.json catalog is unavailable.', 'radioboss-song-ratings'), ['status' => 502]);
+            }
+            $decoded = json_decode(wp_remote_retrieve_body($response), true);
+            if (!is_array($decoded)) {
+                return new WP_Error('rbsr_catalog_invalid', __('The SongSync songs.json catalog is invalid.', 'radioboss-song-ratings'), ['status' => 502]);
+            }
+            $catalog = [];
+            foreach ($decoded as $row) {
+                if (!is_array($row)) continue;
+                $a = sanitize_text_field((string) ($row['artist'] ?? ''));
+                $t = sanitize_text_field((string) ($row['title'] ?? ''));
+                if ($a === '' || $t === '') continue;
+                $key = self::normalize_track_text($a) . '|' . self::normalize_track_text($t);
+                if (!isset($catalog[$key])) $catalog[$key] = ['artist' => $a, 'title' => $t];
+            }
+            set_transient($cacheKey, $catalog, 5 * MINUTE_IN_SECONDS);
+        }
+
+        $lookup = self::normalize_track_text($artist) . '|' . self::normalize_track_text($title);
+        if (!isset($catalog[$lookup])) {
+            return new WP_Error('rbsr_track_not_in_catalog', __('This track was not found in this station\'s SongSync catalog.', 'radioboss-song-ratings'), ['status' => 404]);
+        }
+        return $catalog[$lookup];
     }
 
     public static function counts(string $station, string $songKey): array

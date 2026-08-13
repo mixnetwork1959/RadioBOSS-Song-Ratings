@@ -1,8 +1,8 @@
 # RadioBOSS Song Ratings v1.0.1
 
-This first public release turns the song-rating function into a neutral, independent project for both WordPress and non-WordPress websites.
+This first public release turns the song-rating function into a neutral, independent WordPress plugin.
 
-Two ready-to-install packages are included: the WordPress plugin and the Standalone Edition for ordinary PHP hosting. Both can keep an existing radio player, use a separate rating page, or use the included neutral player.
+Version 1.0.1 adds a permanent shortcode overview under **Song Ratings > Settings**, including all three integration variants for every enabled station.
 
 ## Highlights
 
@@ -15,18 +15,13 @@ Two ready-to-install packages are included: the WordPress plugin and the Standal
 - Add up to four stations through the settings page.
 - Connect the resulting database table to Radio Music Analytics.
 - Preserve compatible legacy ratings through a non-destructive migration copy.
-- Install the Standalone Edition through a browser-based setup wizard.
-- Detect and reuse a compatible existing ratings table instead of creating a duplicate.
-- Customize the included standalone player, colors, logo, language, and layout.
 
 ## Installation
 
-For WordPress, upload `RadioBOSS-Song-Ratings-v1.0.1.zip` through **Plugins > Add New > Upload Plugin**, activate it, and start the setup wizard.
-
-Without WordPress, unpack and upload `RadioBOSS-Song-Ratings-Standalone-v1.0.1.zip`, open `/setup/`, and follow the server, database, station, and design steps.
+Upload the release ZIP through **WordPress > Plugins > Add New > Upload Plugin**, activate it, and start the setup wizard.
 
 ## Important
 
-The included player is optional. Stations can keep their current player. WordPress players can pass artist/title to the widget with `window.RBSR.setTrack()`. The Standalone Edition can read the configured Now Playing API independently.
+The demo player is optional. Stations can keep their current player and pass artist/title to the widget with window.RBSR.setTrack().
 
 This is an unofficial community project and is not affiliated with or endorsed by DJSoft.

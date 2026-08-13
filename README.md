@@ -1,28 +1,8 @@
 # RadioBOSS Song Ratings
 
-RadioBOSS Song Ratings is an unofficial community project for collecting listener feedback on the song that is currently playing.
+RadioBOSS Song Ratings is an unofficial community WordPress plugin for collecting listener feedback on the song that is currently playing.
 
-The project is player-independent. A station can keep its existing web player and add only the rating widget. A configurable neutral player is included for stations that do not already have a player.
-
-## Two editions
-
-| Edition | Best for | Installation |
-| --- | --- | --- |
-| WordPress plugin | WordPress websites | Upload the plugin ZIP and use a shortcode |
-| [Standalone Edition](standalone/README.md) | HTML, PHP, custom, or non-WordPress websites | Upload the folder, open `/setup/`, and copy the generated embed code |
-
-The Standalone Edition can share an existing MySQL or MariaDB database. Its wizard detects compatible rating tables already used by WordPress or Analytics and lets the user reuse one or create a new table. A separate database is not required.
-
-## Downloads
-
-- [WordPress plugin v1.0.1](downloads/RadioBOSS-Song-Ratings-v1.0.1.zip)
-- [Standalone Edition v1.0.1](downloads/RadioBOSS-Song-Ratings-Standalone-v1.0.1.zip)
-
-Use the WordPress ZIP through **Plugins > Add New > Upload Plugin**. For a website without WordPress, unpack and upload the Standalone ZIP, then open its `/setup/` directory in a browser.
-
-## Recommended placement
-
-Place the rating widget **directly below the existing web player**. The player does not need to be replaced or changed. Alternatively, use a separate rating page in a second tab, or use the included neutral player with ratings.
+The plugin is player-independent. A station can keep its existing web player and add only the rating widget. A neutral demo player is included for testing or for stations that do not already have a player.
 
 ## What it does
 
@@ -42,7 +22,7 @@ Place the rating widget **directly below the existing web player**. The player d
 
 - Listeners do not need an account.
 - A station does not need to replace its current web player.
-- The included neutral player is optional.
+- The demo player is optional.
 - Radio Music Analytics and SongSync are optional integrations, not runtime requirements.
 
 ## Requirements
@@ -98,7 +78,7 @@ Configure the station's Now Playing API and add:
 
 The widget refreshes the current track every 15 seconds and displays the rating buttons. It does not play audio.
 
-### 3. Use the included neutral player
+### 3. Use the optional demo player
 
 Configure the Now Playing API and stream URL, then add:
 
