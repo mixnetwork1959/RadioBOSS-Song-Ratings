@@ -149,7 +149,11 @@ final class RBSR_Core
         $cacheKey = 'rbsr_catalog_' . md5($stationSlug . '|' . $station['catalog']);
         $catalog = get_transient($cacheKey);
         if (!is_array($catalog)) {
-            $response = wp_safe_remote_get($station['catalog'], ['timeout' => 10, 'redirection' => 3, 'headers' => ['Accept' => 'application/json']]);
+$response = wp_safe_remote_get($station['catalog'], [
+                'timeout' => 10,
+                'redirection' => 3,
+                'headers' => ['Accept' => 'application/json'],
+            ]);
             if (is_wp_error($response) || wp_remote_retrieve_response_code($response) !== 200) {
                 return new WP_Error('rbsr_catalog_unavailable', __('The SongSync songs.json catalog is unavailable.', 'radioboss-song-ratings'), ['status' => 502]);
             }
@@ -157,14 +161,21 @@ final class RBSR_Core
             if (!is_array($decoded)) {
                 return new WP_Error('rbsr_catalog_invalid', __('The SongSync songs.json catalog is invalid.', 'radioboss-song-ratings'), ['status' => 502]);
             }
+
             $catalog = [];
             foreach ($decoded as $row) {
-                if (!is_array($row)) continue;
+                if (!is_array($row)) {
+                    continue;
+                }
                 $a = sanitize_text_field((string) ($row['artist'] ?? ''));
                 $t = sanitize_text_field((string) ($row['title'] ?? ''));
-                if ($a === '' || $t === '') continue;
+                if ($a === '' || $t === '') {
+                    continue;
+                }
                 $key = self::normalize_track_text($a) . '|' . self::normalize_track_text($t);
-                if (!isset($catalog[$key])) $catalog[$key] = ['artist' => $a, 'title' => $t];
+                if (!isset($catalog[$key])) {
+                    $catalog[$key] = ['artist' => $a, 'title' => $t];
+                }
             }
             set_transient($cacheKey, $catalog, 5 * MINUTE_IN_SECONDS);
         }

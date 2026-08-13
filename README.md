@@ -12,11 +12,40 @@ The plugin is player-independent. A station can keep its existing web player and
 - Shows live vote totals beside the buttons.
 - Provides a protected WordPress dashboard with filters, scores, recommendations, and song details.
 - Supports up to four independently configured stations.
+- Uses a separate SongSync `songs.json` catalog for every station.
+- Supports RadioBOSS installations using either MySQL or SQLite through SongSync.
 - Reads AzuraCast Now Playing JSON and simple artist/title JSON.
 - Accepts metadata directly from an existing JavaScript player.
-- Includes a four-step setup wizard.
+- Includes a setup wizard with catalog validation.
 - Keeps all station shortcodes visible on the Settings page.
 - Can supply the rating table to Radio Music Analytics.
+
+## v1.1.1 architecture
+
+RadioBOSS Song Ratings no longer needs direct access to the RadioBOSS music database.
+
+The data flow is:
+
+```text
+RadioBOSS MySQL or SQLite
+        ↓
+     SongSync
+        ↓
+station-specific songs.json
+        ↓
+RadioBOSS Song Ratings
+```
+
+Each station must use its own catalog URL. For example:
+
+```text
+Main: https://example.com/radioboss-data/main/public/songs.json
+Rock: https://example.com/radioboss-data/rock/public/songs.json
+```
+
+This keeps stations separated and makes the ratings workflow identical whether RadioBOSS uses MySQL or SQLite locally.
+
+The ratings themselves are stored in the normal WordPress database. Replacing or refreshing `songs.json` does not overwrite existing votes.
 
 ## What it does not require
 
@@ -24,12 +53,14 @@ The plugin is player-independent. A station can keep its existing web player and
 - A station does not need to replace its current web player.
 - The demo player is optional.
 - Radio Music Analytics and SongSync are optional integrations, not runtime requirements.
+- No RadioBOSS MySQL host, username, password, or database credentials are required by this plugin.
 
 ## Requirements
 
 - WordPress 6.0 or newer
 - PHP 8.0 or newer
-- MySQL or MariaDB
+- MySQL or MariaDB for WordPress itself
+- SongSync with a public `songs.json` URL for every configured station
 - A current-song source: either an existing player that knows artist/title or a public JSON Now Playing endpoint
 
 Browsers generally cannot read ICY metadata reliably from a raw audio stream. Use the metadata already available in your player, an AzuraCast endpoint, or another JSON Now Playing endpoint.
@@ -40,31 +71,32 @@ Browsers generally cannot read ICY metadata reliably from a raw audio stream. Us
 2. In WordPress, open **Plugins > Add New > Upload Plugin**.
 3. Upload the ZIP, install it, and activate **RadioBOSS Song Ratings**.
 4. Click **Start Setup Wizard**.
-5. Choose one of the three integration modes.
-6. Add the shortcode shown on the final wizard page to a WordPress page.
+5. Configure the station ID, Now Playing source and the station's SongSync `songs.json` URL.
+6. The wizard validates that the catalog URL returns valid JSON containing artist/title entries.
+7. Add the shortcode shown on the final wizard page to a WordPress page.
 
-The plugin creates its own WordPress table. Database credentials do not need to be entered.
+The plugin creates its own WordPress table. RadioBOSS database credentials do not need to be entered.
 
-## The three setup modes
+## Integration modes
 
 ### 1. Keep an existing player
 
 Add the rating-only widget:
 
-~~~text
+```text
 [radioboss_song_ratings station="main-station" source="external"]
-~~~
+```
 
 When the player's metadata changes, pass it to the widget:
 
-~~~js
+```js
 window.RBSR.setTrack({
   station: 'main-station',
   artist: currentArtist,
   title: currentTitle,
   art: currentCoverUrl
 });
-~~~
+```
 
 The station value must match the Station ID configured in the wizard.
 
@@ -72,78 +104,57 @@ The station value must match the Station ID configured in the wizard.
 
 Configure the station's Now Playing API and add:
 
-~~~text
+```text
 [radioboss_song_ratings station="main-station"]
-~~~
+```
 
 The widget refreshes the current track every 15 seconds and displays the rating buttons. It does not play audio.
-
 ### 3. Use the optional demo player
 
 Configure the Now Playing API and stream URL, then add:
 
-~~~text
+```text
 [radioboss_rating_player station="main-station"]
-~~~
+```
 
-The included player is intentionally neutral and can be styled with the configured accent color.
+## Song matching
+
+Before a vote is stored, artist and title are resolved against the `songs.json` catalog for the selected station. Main and Rock catalogs are never mixed.
+
+The ratings identity is station-specific, so the same song can be rated independently on two stations. Multiple physical copies of the same song can share the same rating identity when their normalized artist/title metadata matches.
 
 ## Supported metadata JSON
 
 AzuraCast's public Now Playing response works directly. Simple JSON formats are also accepted:
 
-~~~json
+```json
 {
   "artist": "Example Artist",
   "title": "Example Song",
   "art": "https://radio.example/covers/example.jpg",
   "stream": "https://radio.example/listen/station/radio.mp3"
 }
-~~~
+```
 
-Nested current, current_song, or song objects are supported. Optional next-song data can use next, next_song, or the AzuraCast playing_next.song structure.
-
-## Shortcode options
-
-| Shortcode | Purpose |
-| --- | --- |
-| [radioboss_song_ratings] | Rating-only widget |
-| [radioboss_rating_player] | Optional player plus ratings |
-| station="station-id" | Selects a configured station |
-| source="api" | Reads the configured Now Playing URL |
-| source="external" | Waits for metadata from an existing player |
-| show_track="no" | Hides the title/artist display and shows only the voting area |
-
-The legacy alias [radio_song_rating] is retained for easier migration.
+Nested `current`, `current_song`, or `song` objects are supported. Optional next-song data can use `next`, `next_song`, or the AzuraCast `playing_next.song` structure.
 
 ## Rating logic
 
-Allowed values are:
-
-- dislike
-- ok
-- love
+Allowed values are `dislike`, `ok`, and `love`.
 
 A random browser visitor ID is generated locally. Only a salted hash of that ID is stored. The unique database key is station + song + visitor, so another click updates the existing vote instead of creating a duplicate.
-
-The dashboard uses these default recommendations:
-
-- Popular: at least five votes, at least 70% Love it, score at least +40
-- Review: at least five votes, at least 60% Dislike, score at most -30
-- Observe: enough votes, but neither Popular nor Review
-- Not enough votes: fewer than five votes
 
 ## Radio Music Analytics integration
 
 The plugin stores votes in:
 
-~~~text
+```text
 <wordpress-prefix>rbsr_song_votes
-~~~
+```
 
-For a standard WordPress prefix this is wp_rbsr_song_votes. Set DB_TABLE in Radio Music Analytics to the actual table name.
+For a standard WordPress prefix this is `wp_rbsr_song_votes`. Set `DB_TABLE` in Radio Music Analytics to the actual table name.
 
-The schema remains compatible with the rating queries used by Radio Music Analytics:
+The schema contains:
 
 - station
 - song_key
@@ -154,7 +165,7 @@ The schema remains compatible with the rating queries used by Radio Music Analyt
 - created_at
 - updated_at
 
-SongSync can provide the current music catalog to Radio Music Analytics for chart generation, cleanup previews, and rotation analysis.
+SongSync provides the current music catalog for chart generation, cleanup previews, and rotation analysis.
 
 ## Privacy and abuse protection
 
@@ -163,7 +174,7 @@ SongSync can provide the current music catalog to Radio Music Analytics for char
 - IP addresses are not stored in the rating table.
 - Public vote requests are rate-limited.
 - WordPress salts are used for visitor hashes.
-- The admin dashboard requires the manage_options capability.
+- The admin dashboard requires the `manage_options` capability.
 - Uninstalling or deactivating the plugin does not silently delete ratings.
 
 ## More documentation

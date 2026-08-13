@@ -7,6 +7,20 @@
 
 # Changelog
 
+## 1.1.1
+
+- Added SongSync `songs.json` URL to the setup wizard.
+- Added catalog validation during setup: URL must be reachable, valid JSON, and contain artist/title entries.
+- Clarified that RadioBOSS MySQL and SQLite are both supported through SongSync.
+- Removed the need for RadioBOSS database login details from the ratings workflow.
+
+## 1.1.0
+
+- Use a separate SongSync `songs.json` catalog URL per station as the authoritative music catalog.
+- RadioBOSS MySQL/SQLite is now transparent to the ratings plugin; SongSync handles the local database.
+- Canonicalize Now Playing and vote metadata against the selected station catalog before creating `song_key`.
+- Prevent Main/Rock catalog mixing by resolving strictly within the selected station.
+- No RadioBOSS database credentials are required by this plugin.
 ## 1.0.1
 
 - Added a permanent shortcode overview to the Settings page.
