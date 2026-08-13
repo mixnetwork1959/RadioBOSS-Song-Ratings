@@ -1,32 +1,35 @@
-# RadioBOSS Song Ratings v1.0.1
+# RadioBOSS Song Ratings v1.1.1
 
-This first public release turns the song-rating function into a neutral, independent project for both WordPress and non-WordPress websites.
-
-Two ready-to-install packages are included: the WordPress plugin and the Standalone Edition for ordinary PHP hosting. Both can keep an existing radio player, use a separate rating page, or use the included neutral player.
+Version 1.1.1 completes the SongSync-based catalog workflow and makes RadioBOSS MySQL and SQLite installations behave the same way from the ratings plugin's point of view.
 
 ## Highlights
 
-- Keep an existing radio player and attach only the rating widget.
-- Read current-song data from AzuraCast or compatible JSON.
-- Use the included neutral player only when wanted.
-- Collect Dislike, It's okay, and Love it feedback.
-- Review ratings in a protected WordPress dashboard.
-- Configure the first station through a four-step setup wizard.
-- Add up to four stations through the settings page.
-- Connect the resulting database table to Radio Music Analytics.
-- Preserve compatible legacy ratings through a non-destructive migration copy.
-- Install the Standalone Edition through a browser-based setup wizard.
-- Detect and reuse a compatible existing ratings table instead of creating a duplicate.
-- Customize the included standalone player, colors, logo, language, and layout.
+- Each station now uses its own SongSync `songs.json` catalog.
+- Main and Rock catalogs stay strictly separated.
+- RadioBOSS MySQL and SQLite are both supported through SongSync.
+- No RadioBOSS database host, username, password, or database name is required by Song Ratings.
+- The setup wizard now asks for the station's `songs.json` URL and validates it before setup can continue.
+- Now Playing and vote metadata are resolved against the selected station catalog before creating the rating identity.
+- Refreshing or replacing `songs.json` does not overwrite stored WordPress ratings.
 
-## Installation
+## Recommended upgrade path
 
-For WordPress, upload `RadioBOSS-Song-Ratings-v1.0.1.zip` through **Plugins > Add New > Upload Plugin**, activate it, and start the setup wizard.
+1. Install or update SongSync and make sure every station publishes its own `songs.json`.
+2. Update RadioBOSS Song Ratings to v1.1.1.
+3. Open **Song Ratings > Settings** and configure the correct catalog URL for every station.
+4. For new installations, the setup wizard will request and validate this URL automatically.
 
-Without WordPress, unpack and upload `RadioBOSS-Song-Ratings-Standalone-v1.0.1.zip`, open `/setup/`, and follow the server, database, station, and design steps.
+Example:
+
+```text
+Main: https://example.com/radioboss-data/main/public/songs.json
+Rock: https://example.com/radioboss-data/rock/public/songs.json
+```
 
 ## Important
 
-The included player is optional. Stations can keep their current player. WordPress players can pass artist/title to the widget with `window.RBSR.setTrack()`. The Standalone Edition can read the configured Now Playing API independently.
+The WordPress ratings database remains independent from the SongSync catalog. Catalog refreshes can add or remove songs without automatically deleting existing listener votes.
+
+The demo player remains optional. Stations can keep their current player and pass artist/title to the widget with `window.RBSR.setTrack()`.
 
 This is an unofficial community project and is not affiliated with or endorsed by DJSoft.
