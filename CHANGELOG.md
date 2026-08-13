@@ -1,21 +1,19 @@
 # Changelog
 
-## Standalone 1.0.1
+## 1.1.1
 
-- Added automatic discovery of existing compatible Song Ratings tables.
-- Added an explicit choice between reusing an existing table and creating a new standalone table.
-- Added vote and rated-song counts to the table selector.
-- Added the active database table name to Standalone Settings.
-- Kept backward compatibility with v1.0.0 table-prefix configurations.
+- Added SongSync `songs.json` URL to the setup wizard.
+- Added catalog validation during setup: URL must be reachable, valid JSON, and contain artist/title entries.
+- Clarified that RadioBOSS MySQL and SQLite are both supported through SongSync.
+- Removed the need for RadioBOSS database login details from the ratings workflow.
 
-## Standalone 1.0.0
+## 1.1.0
 
-- Added a non-WordPress PHP edition with a five-step setup wizard.
-- Uses an existing MySQL or MariaDB database and creates its prefixed ratings table automatically.
-- Added three integration variants: widget below an existing player, separate rating page, and included neutral player.
-- Added configurable colors, logo, language, size, corners, cover visibility, and custom CSS.
-- Added responsive JavaScript and plain iFrame embedding.
-- Added a protected ratings dashboard, support for four stations, rate limiting, and automatic setup locking.
+- Use a separate SongSync `songs.json` catalog URL per station as the authoritative music catalog.
+- RadioBOSS MySQL/SQLite is now transparent to the ratings plugin; SongSync handles the local database.
+- Canonicalize Now Playing and vote metadata against the selected station catalog before creating `song_key`.
+- Prevent Main/Rock catalog mixing by resolving strictly within the selected station.
+- No RadioBOSS database credentials are required by this plugin.
 
 ## 1.0.1
 
